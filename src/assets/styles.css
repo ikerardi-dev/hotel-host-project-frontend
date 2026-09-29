@@ -1,0 +1,120 @@
+@import 'tailwindcss';
+
+/*
+  Sistema de diseño de la app (docs/DESIGN.md).
+  Se eliminan los valores por defecto de Tailwind (colores, tipografías, tamaños de texto,
+  radios y sombras) para que solo se puedan usar los del diseño.
+*/
+@theme {
+  /* ---------- Colores ---------- */
+  --color-*: initial;
+
+  --color-white: #ffffff;
+
+  /* Principal: teal (navegación, botones principales, pestañas activas) */
+  --color-primary: #0f766e;
+  --color-primary-hover: #115e59;
+
+  /* Secundario: arena (botones secundarios, agrupaciones) */
+  --color-sand: #e7d8c9;
+  --color-sand-light: #f4efea;
+
+  /* Fondos y bordes */
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-input: #cbd5e1;
+
+  /* Texto */
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
+  --color-ink-disabled: #94a3b8;
+
+  /* Estados: éxito (limpio / listo, tareas hechas) */
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-success-line: #a7f3d0;
+  --color-success-ink: #065f46;
+
+  /* Estados: aviso (limpieza en curso / pendiente) */
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fffbeb;
+  --color-warning-line: #fde68a;
+  --color-warning-ink: #92400e;
+
+  /* Estados: peligro (acciones destructivas, incidencias) */
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-danger-line: #fecaca;
+  --color-danger-ink: #991b1b;
+
+  /* ---------- Tipografía ---------- */
+  --font-*: initial;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  --text-*: initial;
+
+  --text-headline-lg: 2rem;
+  --text-headline-lg--line-height: 2.5rem;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-lg-mobile: 1.625rem;
+  --text-headline-lg-mobile--line-height: 2rem;
+  --text-headline-lg-mobile--font-weight: 700;
+
+  --text-headline-md: 1.375rem;
+  --text-headline-md--line-height: 1.75rem;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 1.125rem;
+  --text-headline-sm--line-height: 1.5rem;
+  --text-headline-sm--font-weight: 600;
+
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5rem;
+
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.25rem;
+
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1rem;
+
+  --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.25rem;
+  --text-label-lg--font-weight: 600;
+  --text-label-lg--letter-spacing: 0.01em;
+
+  --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1rem;
+  --text-label-md--font-weight: 600;
+  --text-label-md--letter-spacing: 0.02em;
+
+  --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 0.875rem;
+  --text-label-sm--font-weight: 700;
+  --text-label-sm--letter-spacing: 0.04em;
+
+  /* ---------- Bordes redondeados ---------- */
+  --radius-*: initial;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem; /* inputs y botones */
+  --radius-lg: 1rem; /* tarjetas y paneles */
+  --radius-xl: 1.5rem;
+
+  /* ---------- Sombras ---------- */
+  --shadow-*: initial;
+  /* Nivel 1: tarjetas */
+  --shadow-card: 0 2px 8px -2px rgb(15 23 42 / 0.06), 0 1px 3px rgb(15 23 42 / 0.04);
+  /* Nivel 2: barras flotantes y paneles inferiores */
+  --shadow-floating: 0 10px 24px -4px rgb(15 23 42 / 0.12), 0 2px 6px -1px rgb(15 23 42 / 0.04);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
