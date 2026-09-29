@@ -47,6 +47,10 @@ const router = createRouter({
         },
       ],
     },
+    // Solo en desarrollo: catálogo de componentes base
+    ...(import.meta.env.DEV
+      ? [{ path: '/ui', component: () => import('@/views/dev/UiPreviewView.vue') }]
+      : []),
   ],
 })
 
