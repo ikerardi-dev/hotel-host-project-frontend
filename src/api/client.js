@@ -28,7 +28,7 @@ async function request(method, path, body) {
     throw new ApiError(0, 'NETWORK_ERROR', 'No se ha podido conectar con el servidor')
   }
 
-  // 204 No Content: la petición ha ido bien pero no hay cuerpo que leer
+
   if (response.status === 204) {
     return null
   }
