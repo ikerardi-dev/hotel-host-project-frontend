@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { login as loginRequest } from '@/api/auth'
+import { changePassword as changePasswordRequest, login as loginRequest } from '@/api/auth'
 import { setAuthToken } from '@/api/client'
 
 const STORAGE_KEY = 'auth'
@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => token.value !== null)
   const role = computed(() => user.value?.role ?? null)
+  const mustChangePassword = computed(() => user.value?.mustChangePassword === true)
   const homeRoute = computed(() => ({ name: HOME_ROUTE_BY_ROLE[role.value] ?? 'login' }))
 
   async function login(email, password) {
@@ -46,6 +47,19 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(response))
   }
 
+  async function changePassword(currentPassword, newPassword) {
+    setUser(await changePasswordRequest(currentPassword, newPassword))
+  }
+
+  // Actualiza los datos del usuario manteniendo la sesión guardada
+  function setUser(updatedUser) {
+    user.value = updatedUser
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ token: token.value, expiresAt: expiresAt.value, user: updatedUser }),
+    )
+  }
+
   function logout() {
     token.value = null
     expiresAt.value = null
@@ -54,5 +68,16 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  return { token, expiresAt, user, isAuthenticated, role, homeRoute, login, logout }
+  return {
+    token,
+    expiresAt,
+    user,
+    isAuthenticated,
+    role,
+    mustChangePassword,
+    homeRoute,
+    login,
+    changePassword,
+    logout,
+  }
 })

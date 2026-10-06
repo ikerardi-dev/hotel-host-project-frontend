@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { login as loginRequest } from '@/api/auth'
+import { changePassword as changePasswordRequest, login as loginRequest } from '@/api/auth'
 import { useAuthStore } from './auth'
 
-vi.mock('@/api/auth', () => ({ login: vi.fn() }))
+vi.mock('@/api/auth', () => ({ login: vi.fn(), changePassword: vi.fn() }))
 
 const FUTURE = new Date(Date.now() + 60 * 60 * 1000).toISOString()
 const PAST = new Date(Date.now() - 60 * 1000).toISOString()
@@ -48,6 +48,23 @@ describe('auth store', () => {
     expect(auth.isAuthenticated).toBe(false)
     expect(auth.user).toBeNull()
     expect(localStorage.getItem('auth')).toBeNull()
+  })
+
+  it('tras cambiar la contraseña temporal deja de exigir el cambio y lo guarda', async () => {
+    loginRequest.mockResolvedValue({
+      ...loginResponse('ADMIN'),
+      user: { id: 1, role: 'ADMIN', mustChangePassword: true },
+    })
+    changePasswordRequest.mockResolvedValue({ id: 1, role: 'ADMIN', mustChangePassword: false })
+    const auth = useAuthStore()
+    await auth.login('maria@test.es', 'Temporal123')
+    expect(auth.mustChangePassword).toBe(true)
+
+    await auth.changePassword(null, 'NuevaClave1')
+
+    expect(auth.mustChangePassword).toBe(false)
+    expect(JSON.parse(localStorage.getItem('auth')).user.mustChangePassword).toBe(false)
+    expect(auth.isAuthenticated).toBe(true)
   })
 
   it('recupera la sesión guardada al recargar la página', () => {

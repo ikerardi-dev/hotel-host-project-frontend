@@ -16,6 +16,12 @@ const router = createRouter({
       meta: { public: true },
     },
     {
+      path: '/first-access',
+      name: 'first-access',
+      component: () => import('@/views/FirstAccessView.vue'),
+      meta: { roles: ALL_ROLES },
+    },
+    {
       path: '/',
       component: AppLayout,
       // Sin ruta concreta: el guard lleva a la pantalla de inicio del rol
@@ -75,6 +81,11 @@ router.beforeEach((to) => {
 
   if (!auth.isAuthenticated) {
     return { name: 'login' }
+  }
+
+  // Con la contraseña temporal solo se puede estar en la pantalla de cambiarla
+  if (auth.mustChangePassword !== (to.name === 'first-access')) {
+    return auth.mustChangePassword ? { name: 'first-access' } : auth.homeRoute
   }
 
   // Ruta sin rol permitido (o la raíz "/"): a la pantalla de inicio del rol
