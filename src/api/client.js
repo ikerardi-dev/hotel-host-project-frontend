@@ -1,5 +1,18 @@
 const API_URL = import.meta.env.VITE_API_URL
 
+let authToken = null
+let onUnauthorized = null
+
+// Token JWT que se envía en todas las peticiones (null = sin sesión)
+export function setAuthToken(token) {
+  authToken = token
+}
+
+// Se ejecuta cuando la API responde 401 teniendo sesión (token caducado o usuario dado de baja)
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = handler
+}
+
 // Error de la API con el formato acordado: { "error": "CODIGO", "message": "..." }
 export class ApiError extends Error {
   constructor(status, code, message) {
@@ -14,6 +27,10 @@ async function request(method, path, body) {
   const options = {
     method,
     headers: { Accept: 'application/json' },
+  }
+
+  if (authToken) {
+    options.headers.Authorization = `Bearer ${authToken}`
   }
 
   if (body !== undefined) {
@@ -34,6 +51,10 @@ async function request(method, path, body) {
   }
 
   const data = await response.json().catch(() => null)
+
+  if (response.status === 401 && authToken && onUnauthorized) {
+    onUnauthorized()
+  }
 
   if (!response.ok) {
     throw new ApiError(

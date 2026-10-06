@@ -3,12 +3,13 @@ import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import BottomNav from '@/components/layout/BottomNav.vue'
+import { useAuthStore } from '@/stores/auth'
 import { navigationByRole } from './navigation'
 
 const route = useRoute()
+const auth = useAuthStore()
 
-// Hasta la historia de login no hay usuario: se muestra el menú del administrador
-const navigation = navigationByRole.ADMIN
+const navigation = computed(() => navigationByRole[auth.role])
 
 const title = computed(() => route.meta.title ?? '')
 </script>

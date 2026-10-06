@@ -1,57 +1,88 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const ADMIN = ['ADMIN']
+const CLEANING = ['CLEANING']
+const ALL_ROLES = ['ADMIN', 'CLEANING']
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue'),
+      meta: { public: true },
+    },
+    {
       path: '/',
       component: AppLayout,
-      redirect: { name: 'today' },
+      // Sin ruta concreta: el guard lleva a la pantalla de inicio del rol
       children: [
         {
           path: 'today',
           name: 'today',
           component: () => import('@/views/TodayView.vue'),
-          meta: { title: 'Hoy' },
+          meta: { title: 'Hoy', roles: ADMIN },
         },
         {
           path: 'occupancy',
           name: 'occupancy',
           component: () => import('@/views/OccupancyView.vue'),
-          meta: { title: 'Ocupación' },
+          meta: { title: 'Ocupación', roles: ADMIN },
         },
         {
           path: 'cleanings',
           name: 'cleanings',
           component: () => import('@/views/CleaningsView.vue'),
-          meta: { title: 'Limpiezas' },
+          meta: { title: 'Limpiezas', roles: ADMIN },
         },
         {
           path: 'employees',
           name: 'employees',
           component: () => import('@/views/EmployeesView.vue'),
-          meta: { title: 'Empleados' },
+          meta: { title: 'Empleados', roles: ADMIN },
         },
         {
           path: 'my-cleanings',
           name: 'my-cleanings',
           component: () => import('@/views/MyCleaningsView.vue'),
-          meta: { title: 'Mis limpiezas' },
+          meta: { title: 'Mis limpiezas', roles: CLEANING },
         },
         {
           path: 'profile',
           name: 'profile',
           component: () => import('@/views/ProfileView.vue'),
-          meta: { title: 'Mi perfil' },
+          meta: { title: 'Mi perfil', roles: ALL_ROLES },
         },
       ],
     },
     // Solo en desarrollo: catálogo de componentes base
     ...(import.meta.env.DEV
-      ? [{ path: '/ui', component: () => import('@/views/dev/UiPreviewView.vue') }]
+      ? [{ path: '/ui', component: () => import('@/views/dev/UiPreviewView.vue'), meta: { public: true } }]
       : []),
   ],
+})
+
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+
+  if (to.meta.public) {
+    // Con sesión iniciada no tiene sentido volver al login
+    return to.name === 'login' && auth.isAuthenticated ? auth.homeRoute : true
+  }
+
+  if (!auth.isAuthenticated) {
+    return { name: 'login' }
+  }
+
+  // Ruta sin rol permitido (o la raíz "/"): a la pantalla de inicio del rol
+  if (!to.meta.roles?.includes(auth.role)) {
+    return auth.homeRoute
+  }
+
+  return true
 })
 
 export default router

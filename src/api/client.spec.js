@@ -4,15 +4,19 @@ const API_URL = 'http://api.test'
 
 let api
 let ApiError
+let setAuthToken
+let setUnauthorizedHandler
 
 beforeAll(async () => {
   // La URL se lee al cargar el módulo, así que se define antes de importarlo
   vi.stubEnv('VITE_API_URL', API_URL)
-  ;({ api, ApiError } = await import('./client.js'))
+  ;({ api, ApiError, setAuthToken, setUnauthorizedHandler } = await import('./client.js'))
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  setAuthToken(null)
+  setUnauthorizedHandler(null)
 })
 
 afterAll(() => {
@@ -62,6 +66,36 @@ describe('api client', () => {
     expect(error).toBeInstanceOf(ApiError)
     expect(error.status).toBe(0)
     expect(error.code).toBe('NETWORK_ERROR')
+  })
+
+  it('envía el token de sesión en la cabecera Authorization', async () => {
+    const fetchMock = mockFetchResponse(200, {})
+    setAuthToken('mi-token')
+
+    await api.get('/me')
+
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer mi-token')
+  })
+
+  it('avisa cuando la sesión deja de valer (401 con token)', async () => {
+    mockFetchResponse(401, { error: 'UNAUTHORIZED', message: 'Tienes que iniciar sesión' })
+    const handler = vi.fn()
+    setAuthToken('token-caducado')
+    setUnauthorizedHandler(handler)
+
+    await api.get('/me').catch(() => {})
+
+    expect(handler).toHaveBeenCalledOnce()
+  })
+
+  it('no avisa de sesión caducada en un login fallido (401 sin token)', async () => {
+    mockFetchResponse(401, { error: 'INVALID_CREDENTIALS', message: 'Email o contraseña incorrectos' })
+    const handler = vi.fn()
+    setUnauthorizedHandler(handler)
+
+    await api.post('/auth/login', {}).catch(() => {})
+
+    expect(handler).not.toHaveBeenCalled()
   })
 
   it('devuelve null en una respuesta 204 sin contenido', async () => {
