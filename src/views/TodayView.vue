@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { Plus } from '@lucide/vue'
 import ApartmentCard from '@/components/ApartmentCard.vue'
+import NewBookingModal from '@/components/NewBookingModal.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseChip from '@/components/ui/BaseChip.vue'
 import { getApartments } from '@/api/apartments'
@@ -9,16 +11,20 @@ const apartments = ref([])
 const loading = ref(true)
 const loadError = ref('')
 const selectedBuildingId = ref(null) // null = todos
+const bookingModalOpen = ref(false)
 
-onMounted(async () => {
+async function loadApartments() {
   try {
     apartments.value = await getApartments()
+    loadError.value = ''
   } catch (e) {
     loadError.value = e.message
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadApartments)
 
 // Edificios en el orden en que llegan los apartamentos, con sus apartamentos y ocupados
 const buildings = computed(() => {
@@ -81,6 +87,17 @@ const visibleBuildings = computed(() =>
           <ApartmentCard v-for="apartment in building.apartments" :key="apartment.id" :apartment="apartment" />
         </div>
       </section>
+
+      <button
+        type="button"
+        class="fixed right-4 bottom-24 z-10 flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-floating hover:bg-primary-hover"
+        aria-label="Registrar reserva"
+        @click="bookingModalOpen = true"
+      >
+        <Plus class="size-6" aria-hidden="true" />
+      </button>
+
+      <NewBookingModal v-model:open="bookingModalOpen" :apartments="apartments" @created="loadApartments" />
     </template>
   </section>
 </template>
