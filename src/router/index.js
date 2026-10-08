@@ -33,6 +33,12 @@ const router = createRouter({
           meta: { title: 'Hoy', roles: ADMIN },
         },
         {
+          path: 'apartments/:id',
+          name: 'apartment-detail',
+          component: () => import('@/views/ApartmentDetailView.vue'),
+          meta: { title: 'Apartamento', roles: ADMIN },
+        },
+        {
           path: 'occupancy',
           name: 'occupancy',
           component: () => import('@/views/OccupancyView.vue'),

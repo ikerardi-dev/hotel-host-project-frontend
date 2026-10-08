@@ -8,6 +8,7 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 import { createBooking, getAvailability } from '@/api/bookings'
 import { getEmployees } from '@/api/employees'
 import { useToastStore } from '@/stores/toast'
+import { BOOKING_CHANNELS } from '@/utils/bookingChannels'
 import { countNights, localDate, toLocalDateTime } from '@/utils/dates'
 
 const open = defineModel('open', { type: Boolean, default: false })
@@ -19,13 +20,6 @@ const props = defineProps({
 const emit = defineEmits(['created'])
 
 const toast = useToastStore()
-
-const CHANNELS = [
-  { value: 'BOOKING', label: 'Booking.com' },
-  { value: 'AIRBNB', label: 'Airbnb' },
-  { value: 'DIRECT', label: 'Directa' },
-  { value: 'PHONE', label: 'Teléfono' },
-]
 
 function emptyForm() {
   return {
@@ -190,7 +184,7 @@ async function submit() {
         <h3 class="text-label-md uppercase text-ink-muted">3. Canal</h3>
         <div class="grid grid-cols-2 gap-2">
           <BaseChip
-            v-for="channel in CHANNELS"
+            v-for="channel in BOOKING_CHANNELS"
             :key="channel.value"
             class="justify-center"
             :selected="form.channel === channel.value"

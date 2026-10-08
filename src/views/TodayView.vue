@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import ApartmentCard from '@/components/ApartmentCard.vue'
 import NewBookingModal from '@/components/NewBookingModal.vue'
@@ -84,7 +85,14 @@ const visibleBuildings = computed(() =>
         </header>
 
         <div class="grid grid-cols-2 gap-3">
-          <ApartmentCard v-for="apartment in building.apartments" :key="apartment.id" :apartment="apartment" />
+          <RouterLink
+            v-for="apartment in building.apartments"
+            :key="apartment.id"
+            :to="{ name: 'apartment-detail', params: { id: apartment.id } }"
+            class="flex"
+          >
+            <ApartmentCard class="flex-1" :apartment="apartment" />
+          </RouterLink>
         </div>
       </section>
 
