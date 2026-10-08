@@ -28,3 +28,15 @@ export function formatTime(isoDateTime) {
 export function formatDateRange(from, to) {
   return `${formatShortDate(from)} – ${formatShortDate(to)}`
 }
+
+const longDate = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+
+// "2026-10-08" → "jueves, 8 de octubre" (la fecha se interpreta en hora local)
+export function formatLongDate(isoDate) {
+  return longDate.format(new Date(`${isoDate}T00:00:00`))
+}
+
+// Hora de la API "12:00:00" → "12:00"
+export function formatHour(isoTime) {
+  return isoTime.slice(0, 5)
+}

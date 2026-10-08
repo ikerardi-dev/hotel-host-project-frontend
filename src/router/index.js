@@ -63,6 +63,12 @@ const router = createRouter({
           meta: { title: 'Mis limpiezas', roles: CLEANING },
         },
         {
+          path: 'cleanings/:id',
+          name: 'cleaning-detail',
+          component: () => import('@/views/CleaningDetailView.vue'),
+          meta: { title: 'Detalle de limpieza', roles: ALL_ROLES },
+        },
+        {
           path: 'profile',
           name: 'profile',
           component: () => import('@/views/ProfileView.vue'),

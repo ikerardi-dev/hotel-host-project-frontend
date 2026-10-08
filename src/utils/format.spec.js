@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatBeds, formatDateRange, formatTime } from './format'
+import { formatBeds, formatDateRange, formatHour, formatLongDate, formatTime } from './format'
 
 describe('formatBeds', () => {
   it('describe las camas en singular y plural', () => {
@@ -24,5 +24,10 @@ describe('fechas', () => {
 
   it('formatea la hora', () => {
     expect(formatTime('2026-10-20T16:00:00')).toBe('16:00')
+    expect(formatHour('12:30:00')).toBe('12:30')
+  })
+
+  it('formatea una fecha larga con el día de la semana', () => {
+    expect(formatLongDate('2026-10-08')).toBe('jueves, 8 de octubre')
   })
 })
