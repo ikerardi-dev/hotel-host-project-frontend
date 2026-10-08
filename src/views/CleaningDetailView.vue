@@ -6,6 +6,7 @@ import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseConfirmDialog from '@/components/ui/BaseConfirmDialog.vue'
 import { getCleaning, updateChecklistItem, updateCleaningStatus, updateIncident } from '@/api/cleanings'
+import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import { CLEANING_STATUS } from '@/utils/cleaningStatus'
 import { formatBeds, formatHour, formatLongDate, formatTime } from '@/utils/format'
@@ -13,6 +14,7 @@ import { formatBeds, formatHour, formatLongDate, formatTime } from '@/utils/form
 const route = useRoute()
 const router = useRouter()
 const toast = useToastStore()
+const auth = useAuthStore()
 
 const cleaning = ref(null)
 const loadError = ref('')
@@ -20,12 +22,36 @@ const busy = ref(false)
 const incident = ref('')
 const confirmFinishOpen = ref(false)
 
+// El admin puede modificar la limpieza de un empleado, pero antes se le avisa (una vez por visita)
+const adminConfirmOpen = ref(false)
+const adminConfirmed = ref(false)
+let pendingAction = null
+
 const status = computed(() => CLEANING_STATUS[cleaning.value.status])
 const inProgress = computed(() => cleaning.value.status === 'IN_PROGRESS')
 const doneTasks = computed(() => cleaning.value.checklist.filter((item) => item.done).length)
 const totalTasks = computed(() => cleaning.value.checklist.length)
 const progress = computed(() => (totalTasks.value ? Math.round((doneTasks.value / totalTasks.value) * 100) : 0))
 const incidentChanged = computed(() => incident.value.trim() !== (cleaning.value.incidentNotes ?? ''))
+const editingSomeoneElsesCleaning = computed(
+  () => auth.role === 'ADMIN' && cleaning.value.assignedTo && cleaning.value.assignedTo.id !== auth.user.id,
+)
+
+function guarded(action) {
+  if (editingSomeoneElsesCleaning.value && !adminConfirmed.value) {
+    pendingAction = action
+    adminConfirmOpen.value = true
+  } else {
+    action()
+  }
+}
+
+function confirmAdminEdit() {
+  adminConfirmed.value = true
+  adminConfirmOpen.value = false
+  pendingAction?.()
+  pendingAction = null
+}
 
 onMounted(async () => {
   try {
@@ -54,23 +80,25 @@ async function run(action, successMessage) {
 }
 
 function start() {
-  run(() => updateCleaningStatus(cleaning.value.id, 'IN_PROGRESS'), 'Limpieza empezada')
+  guarded(() => run(() => updateCleaningStatus(cleaning.value.id, 'IN_PROGRESS'), 'Limpieza empezada'))
 }
 
 function toggleItem(item) {
-  run(() => updateChecklistItem(cleaning.value.id, item.id, !item.done))
+  guarded(() => run(() => updateChecklistItem(cleaning.value.id, item.id, !item.done)))
 }
 
 function saveIncident() {
-  run(() => updateIncident(cleaning.value.id, incident.value), 'Incidencia guardada')
+  guarded(() => run(() => updateIncident(cleaning.value.id, incident.value), 'Incidencia guardada'))
 }
 
 function askFinish() {
-  if (doneTasks.value < totalTasks.value) {
-    confirmFinishOpen.value = true
-  } else {
-    finish()
-  }
+  guarded(() => {
+    if (doneTasks.value < totalTasks.value) {
+      confirmFinishOpen.value = true
+    } else {
+      finish()
+    }
+  })
 }
 
 async function finish() {
@@ -206,6 +234,14 @@ async function finish() {
         confirm-label="Finalizar igualmente"
         :loading="busy"
         @confirm="finish"
+      />
+
+      <BaseConfirmDialog
+        v-model:open="adminConfirmOpen"
+        title="¿Estás seguro de modificar las tareas del empleado?"
+        message="Se verán las modificaciones en su perfil."
+        confirm-label="Sí, modificar"
+        @confirm="confirmAdminEdit"
       />
     </template>
   </section>
