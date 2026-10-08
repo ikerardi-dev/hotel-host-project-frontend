@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatBeds, formatDateRange, formatHour, formatLongDate, formatTime } from './format'
+import { formatBeds, formatDateRange, formatDayTitle, formatHour, formatLongDate, formatTime } from './format'
 
 describe('formatBeds', () => {
   it('describe las camas en singular y plural', () => {
@@ -29,5 +29,12 @@ describe('fechas', () => {
 
   it('formatea una fecha larga con el día de la semana', () => {
     expect(formatLongDate('2026-10-08')).toBe('jueves, 8 de octubre')
+  })
+
+  it('pone Hoy, Mañana o Ayer delante de la fecha cuando corresponde', () => {
+    expect(formatDayTitle('2026-10-08', '2026-10-08')).toBe('Hoy · jueves, 8 de octubre')
+    expect(formatDayTitle('2026-10-09', '2026-10-08')).toBe('Mañana · viernes, 9 de octubre')
+    expect(formatDayTitle('2026-10-07', '2026-10-08')).toBe('Ayer · miércoles, 7 de octubre')
+    expect(formatDayTitle('2026-10-12', '2026-10-08')).toBe('lunes, 12 de octubre')
   })
 })

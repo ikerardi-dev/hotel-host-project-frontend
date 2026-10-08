@@ -1,11 +1,19 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, BedDouble, Check, CircleCheck, Clock, Play, TriangleAlert } from '@lucide/vue'
+import { ArrowLeft, BedDouble, Check, CircleCheck, Clock, Play, TriangleAlert, UserRound } from '@lucide/vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseConfirmDialog from '@/components/ui/BaseConfirmDialog.vue'
-import { getCleaning, updateChecklistItem, updateCleaningStatus, updateIncident } from '@/api/cleanings'
+import BaseInput from '@/components/ui/BaseInput.vue'
+import {
+  getCleaning,
+  reassignCleaning,
+  updateChecklistItem,
+  updateCleaningStatus,
+  updateIncident,
+} from '@/api/cleanings'
+import { getEmployees } from '@/api/employees'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import { CLEANING_STATUS } from '@/utils/cleaningStatus'
@@ -26,6 +34,17 @@ const confirmFinishOpen = ref(false)
 const adminConfirmOpen = ref(false)
 const adminConfirmed = ref(false)
 let pendingAction = null
+
+// Reasignación (solo admin y solo limpiezas pendientes)
+const isAdmin = computed(() => auth.role === 'ADMIN')
+const cleaners = ref([])
+const assignment = ref({ cleanerId: '', startTime: '', endTime: '' })
+const assignmentChanged = computed(
+  () =>
+    String(assignment.value.cleanerId) !== String(cleaning.value.assignedTo?.id ?? '') ||
+    assignment.value.startTime !== formatHour(cleaning.value.startTime) ||
+    assignment.value.endTime !== formatHour(cleaning.value.endTime),
+)
 
 const status = computed(() => CLEANING_STATUS[cleaning.value.status])
 const inProgress = computed(() => cleaning.value.status === 'IN_PROGRESS')
@@ -59,11 +78,39 @@ onMounted(async () => {
   } catch (e) {
     loadError.value = e.message
   }
+  if (isAdmin.value) {
+    try {
+      cleaners.value = (await getEmployees()).filter((employee) => employee.active)
+    } catch {
+      cleaners.value = []
+    }
+  }
 })
 
 function setCleaning(updated) {
   cleaning.value = updated
   incident.value = updated.incidentNotes ?? ''
+  assignment.value = {
+    cleanerId: updated.assignedTo?.id ?? '',
+    startTime: formatHour(updated.startTime),
+    endTime: formatHour(updated.endTime),
+  }
+}
+
+function saveAssignment() {
+  if (assignment.value.endTime <= assignment.value.startTime) {
+    toast.show('La limpieza debe terminar después de empezar', 'error')
+    return
+  }
+  run(
+    () =>
+      reassignCleaning(cleaning.value.id, {
+        cleanerId: assignment.value.cleanerId || null,
+        startTime: assignment.value.startTime,
+        endTime: assignment.value.endTime,
+      }),
+    'Asignación guardada',
+  )
 }
 
 // Ejecuta una acción contra la API mostrando el error, si lo hay, en un aviso
@@ -142,6 +189,41 @@ async function finish() {
           </p>
         </div>
       </header>
+
+      <section
+        v-if="isAdmin"
+        class="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-card"
+      >
+        <h3 class="flex items-center gap-2 text-headline-sm">
+          <UserRound class="size-5 text-ink-muted" aria-hidden="true" />
+          Asignación
+        </h3>
+        <template v-if="cleaning.status === 'PENDING'">
+          <label class="flex flex-col gap-1.5">
+            <span class="text-label-lg">Empleado</span>
+            <select
+              v-model="assignment.cleanerId"
+              class="h-12 rounded-md border border-border-input bg-surface px-3 text-body-lg focus:ring-2 focus:ring-primary focus:outline-none"
+            >
+              <option value="">Sin asignar</option>
+              <option v-for="cleaner in cleaners" :key="cleaner.id" :value="cleaner.id">
+                {{ cleaner.firstName }} {{ cleaner.lastName }}
+              </option>
+            </select>
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <BaseInput v-model="assignment.startTime" label="Desde" type="time" />
+            <BaseInput v-model="assignment.endTime" label="Hasta" type="time" />
+          </div>
+          <BaseButton variant="secondary" :disabled="!assignmentChanged || busy" @click="saveAssignment">
+            Guardar asignación
+          </BaseButton>
+        </template>
+        <p v-else class="text-body-md">
+          {{ cleaning.assignedTo?.name ?? 'Sin asignar' }}
+          <span class="block text-body-sm text-ink-muted">Solo se pueden reasignar las limpiezas pendientes.</span>
+        </p>
+      </section>
 
       <section class="flex flex-col gap-2 rounded-lg border border-border bg-surface p-4 shadow-card">
         <h3 class="flex items-center gap-2 text-headline-sm">

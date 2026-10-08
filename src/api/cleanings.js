@@ -4,6 +4,20 @@ export function getMyCleanings() {
   return api.get('/me/cleanings')
 }
 
+// Solo admin. filters: { from, to, status?, buildingId?, employeeId?, unassigned? }
+export function searchCleanings(filters) {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== '' && value !== false) params.set(key, value)
+  })
+  return api.get(`/cleanings?${params}`)
+}
+
+// Solo admin: { cleanerId (null = sin asignar), startTime, endTime } en una limpieza pendiente
+export function reassignCleaning(id, assignment) {
+  return api.patch(`/cleanings/${id}`, assignment)
+}
+
 export function getCleaning(id) {
   return api.get(`/cleanings/${id}`)
 }

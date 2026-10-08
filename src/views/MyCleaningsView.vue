@@ -4,7 +4,7 @@ import CleaningTaskCard from '@/components/CleaningTaskCard.vue'
 import { getMyCleanings } from '@/api/cleanings'
 import { useAuthStore } from '@/stores/auth'
 import { localDate } from '@/utils/dates'
-import { formatLongDate } from '@/utils/format'
+import { formatDayTitle, formatLongDate } from '@/utils/format'
 
 const auth = useAuthStore()
 
@@ -13,7 +13,6 @@ const loading = ref(true)
 const loadError = ref('')
 
 const today = localDate(0)
-const tomorrow = localDate(1)
 
 onMounted(async () => {
   try {
@@ -44,10 +43,7 @@ const groups = computed(() => {
 })
 
 function groupTitle(key) {
-  if (key === 'overdue') return 'Atrasadas'
-  if (key === today) return `Hoy · ${formatLongDate(key)}`
-  if (key === tomorrow) return `Mañana · ${formatLongDate(key)}`
-  return formatLongDate(key)
+  return key === 'overdue' ? 'Atrasadas' : formatDayTitle(key, today)
 }
 </script>
 

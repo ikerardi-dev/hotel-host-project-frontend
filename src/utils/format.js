@@ -36,6 +36,13 @@ export function formatLongDate(isoDate) {
   return longDate.format(new Date(`${isoDate}T00:00:00`))
 }
 
+// Título de un día respecto a hoy: "Hoy · jueves, 8 de octubre", "Mañana · …", "Ayer · …" o la fecha
+export function formatDayTitle(isoDate, today = new Date().toLocaleDateString('sv-SE')) {
+  const offsetDays = Math.round((Date.parse(isoDate) - Date.parse(today)) / (24 * 60 * 60 * 1000))
+  const prefix = { 0: 'Hoy', 1: 'Mañana', '-1': 'Ayer' }[offsetDays]
+  return prefix ? `${prefix} · ${formatLongDate(isoDate)}` : formatLongDate(isoDate)
+}
+
 // Hora de la API "12:00:00" → "12:00"
 export function formatHour(isoTime) {
   return isoTime.slice(0, 5)
