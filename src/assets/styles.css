@@ -111,6 +111,12 @@
 }
 
 @layer base {
+  /* Edge añade su propio botón de mostrar contraseña: se oculta para dejar solo el de BaseInput */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
+
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
