@@ -3,9 +3,13 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, BedDouble } from '@lucide/vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
+import BaseConfirmDialog from '@/components/ui/BaseConfirmDialog.vue'
 import BookingCalendar from '@/components/BookingCalendar.vue'
+import BookingFormModal from '@/components/BookingFormModal.vue'
 import DayDetailPanel from '@/components/DayDetailPanel.vue'
 import { getApartment, getApartmentBookings, getApartmentCleanings } from '@/api/apartments'
+import { cancelBooking } from '@/api/bookings'
+import { useToastStore } from '@/stores/toast'
 import { buildMonthGrid, bookingsOnDay } from '@/utils/calendar'
 import { localDate } from '@/utils/dates'
 import { formatBeds } from '@/utils/format'
@@ -66,6 +70,47 @@ function changeMonth(delta) {
 // Pulsar el día seleccionado lo cierra
 function selectDay(date) {
   selectedDate.value = selectedDate.value === date ? null : date
+}
+
+// Editar y cancelar reservas desde el detalle del día
+const toast = useToastStore()
+const editingBooking = ref(null)
+const formOpen = ref(false)
+const cancellingBooking = ref(null)
+const cancelOpen = ref(false)
+const cancelling = ref(false)
+
+async function reload() {
+  try {
+    apartment.value = await getApartment(route.params.id)
+  } catch (e) {
+    loadError.value = e.message
+  }
+  await loadMonth()
+}
+
+function editBooking(booking) {
+  editingBooking.value = booking
+  formOpen.value = true
+}
+
+function askCancel(booking) {
+  cancellingBooking.value = booking
+  cancelOpen.value = true
+}
+
+async function confirmCancel() {
+  cancelling.value = true
+  try {
+    await cancelBooking(cancellingBooking.value.id)
+    toast.show('Reserva cancelada')
+    cancelOpen.value = false
+    await reload()
+  } catch (e) {
+    toast.show(e.message, 'error')
+  } finally {
+    cancelling.value = false
+  }
 }
 
 const dayBookings = computed(() => (selectedDate.value ? bookingsOnDay(selectedDate.value, bookings.value) : []))
@@ -130,8 +175,28 @@ const dayCleanings = computed(() => cleanings.value.filter((cleaning) => cleanin
           :bookings="dayBookings"
           :cleanings="dayCleanings"
           :capacity="apartment.capacity"
+          @edit="editBooking"
+          @cancel="askCancel"
         />
       </Transition>
+
+      <BookingFormModal
+        v-model:open="formOpen"
+        :apartments="[apartment]"
+        :booking="editingBooking"
+        @saved="reload"
+      />
+
+      <BaseConfirmDialog
+        v-if="cancellingBooking"
+        v-model:open="cancelOpen"
+        :title="`¿Cancelar la reserva de ${cancellingBooking.guestName}?`"
+        message="La reserva quedará cancelada y su limpieza pendiente también. Las fechas volverán a estar libres."
+        confirm-label="Cancelar reserva"
+        variant="danger"
+        :loading="cancelling"
+        @confirm="confirmCancel"
+      />
     </template>
   </section>
 </template>

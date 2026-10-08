@@ -1,6 +1,7 @@
 <script setup>
-import { LogIn, LogOut, Phone, StickyNote, Users } from '@lucide/vue'
+import { CalendarX, LogIn, LogOut, Pencil, Phone, StickyNote, Users } from '@lucide/vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import CleaningTaskCard from '@/components/CleaningTaskCard.vue'
 import { channelLabel } from '@/utils/bookingChannels'
 import { countNights } from '@/utils/dates'
@@ -13,6 +14,8 @@ defineProps({
   cleanings: { type: Array, required: true },
   capacity: { type: Number, required: true },
 })
+
+const emit = defineEmits(['edit', 'cancel'])
 </script>
 
 <template>
@@ -68,6 +71,17 @@ defineProps({
         <StickyNote class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         {{ booking.notes }}
       </p>
+
+      <div class="flex gap-2">
+        <BaseButton variant="secondary" class="flex-1" @click="emit('edit', booking)">
+          <Pencil class="size-4" aria-hidden="true" />
+          Editar
+        </BaseButton>
+        <BaseButton variant="danger" class="flex-1" @click="emit('cancel', booking)">
+          <CalendarX class="size-4" aria-hidden="true" />
+          Cancelar reserva
+        </BaseButton>
+      </div>
     </article>
 
     <CleaningTaskCard v-for="cleaning in cleanings" :key="cleaning.id" :cleaning="cleaning" show-assignee />

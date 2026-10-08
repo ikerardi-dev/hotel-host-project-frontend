@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import ApartmentCard from '@/components/ApartmentCard.vue'
-import NewBookingModal from '@/components/NewBookingModal.vue'
+import BookingFormModal from '@/components/BookingFormModal.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseChip from '@/components/ui/BaseChip.vue'
 import { getApartments } from '@/api/apartments'
@@ -105,7 +105,7 @@ const visibleBuildings = computed(() =>
         <Plus class="size-6" aria-hidden="true" />
       </button>
 
-      <NewBookingModal v-model:open="bookingModalOpen" :apartments="apartments" @created="loadApartments" />
+      <BookingFormModal v-model:open="bookingModalOpen" :apartments="apartments" @saved="loadApartments" />
     </template>
   </section>
 </template>

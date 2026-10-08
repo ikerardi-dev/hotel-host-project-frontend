@@ -5,21 +5,47 @@ import BaseBottomSheet from '@/components/ui/BaseBottomSheet.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseChip from '@/components/ui/BaseChip.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
-import { createBooking, getAvailability } from '@/api/bookings'
+import { createBooking, getAvailability, updateBooking } from '@/api/bookings'
 import { getEmployees } from '@/api/employees'
 import { useToastStore } from '@/stores/toast'
 import { BOOKING_CHANNELS } from '@/utils/bookingChannels'
 import { countNights, localDate, toLocalDateTime } from '@/utils/dates'
 
+// Sirve para registrar (booking = null) y para editar una reserva existente
 const open = defineModel('open', { type: Boolean, default: false })
 
 const props = defineProps({
   apartments: { type: Array, required: true },
+  booking: { type: Object, default: null },
 })
 
-const emit = defineEmits(['created'])
+const emit = defineEmits(['saved'])
 
 const toast = useToastStore()
+
+const isEditing = computed(() => props.booking !== null)
+
+// Formulario relleno con la reserva que se edita (al editar no cambian el apartamento ni la limpieza)
+function formFromBooking(booking) {
+  const apartment = props.apartments.find((a) => a.id === booking.apartmentId)
+  return {
+    ...emptyForm(),
+    buildingId: apartment?.building.id ?? null,
+    apartmentId: booking.apartmentId,
+    channel: booking.channel,
+    guestName: booking.guestName,
+    guestPhone: booking.guestPhone ?? '',
+    guestEmail: booking.guestEmail ?? '',
+    reference: booking.reference ?? '',
+    checkInDate: booking.checkIn.slice(0, 10),
+    checkInTime: booking.checkIn.slice(11, 16),
+    checkOutDate: booking.checkOut.slice(0, 10),
+    checkOutTime: booking.checkOut.slice(11, 16),
+    guests: booking.guests,
+    notes: booking.notes ?? '',
+    scheduleCleaning: false,
+  }
+}
 
 function emptyForm() {
   return {
@@ -62,11 +88,12 @@ const checkIn = computed(() => toLocalDateTime(form.checkInDate, form.checkInTim
 const checkOut = computed(() => toLocalDateTime(form.checkOutDate, form.checkOutTime))
 const validDates = computed(() => form.checkInDate && form.checkOutDate && checkOut.value > checkIn.value)
 
-// Al abrir: formulario limpio y empleados activos para asignar la limpieza
+// Al abrir: formulario limpio (o con la reserva que se edita) y empleados activos para asignar la limpieza
 watch(open, async (isOpen) => {
   if (!isOpen) return
-  Object.assign(form, emptyForm())
+  Object.assign(form, isEditing.value ? formFromBooking(props.booking) : emptyForm())
   error.value = ''
+  if (isEditing.value) return
   try {
     cleaners.value = (await getEmployees()).filter((employee) => employee.active)
   } catch {
@@ -81,7 +108,7 @@ watch([checkIn, checkOut, open], async () => {
     return
   }
   try {
-    const { unavailableApartmentIds } = await getAvailability(checkIn.value, checkOut.value)
+    const { unavailableApartmentIds } = await getAvailability(checkIn.value, checkOut.value, props.booking?.id)
     unavailableIds.value = new Set(unavailableApartmentIds)
   } catch {
     unavailableIds.value = new Set()
@@ -112,25 +139,34 @@ async function submit() {
   error.value = validate()
   if (error.value) return
 
+  const details = {
+    channel: form.channel,
+    guestName: form.guestName,
+    guestPhone: form.guestPhone,
+    guestEmail: form.guestEmail || null,
+    reference: form.reference,
+    checkIn: checkIn.value,
+    checkOut: checkOut.value,
+    guests: form.guests,
+    notes: form.notes,
+  }
+
   saving.value = true
   try {
-    await createBooking({
-      apartmentId: form.apartmentId,
-      channel: form.channel,
-      guestName: form.guestName,
-      guestPhone: form.guestPhone,
-      guestEmail: form.guestEmail || null,
-      reference: form.reference,
-      checkIn: checkIn.value,
-      checkOut: checkOut.value,
-      guests: form.guests,
-      notes: form.notes,
-      cleaning: form.scheduleCleaning
-        ? { startTime: form.cleaningStart, endTime: form.cleaningEnd, cleanerId: form.cleanerId || null }
-        : null,
-    })
-    toast.show('Reserva guardada')
-    emit('created')
+    if (isEditing.value) {
+      await updateBooking(props.booking.id, details)
+      toast.show('Reserva actualizada')
+    } else {
+      await createBooking({
+        ...details,
+        apartmentId: form.apartmentId,
+        cleaning: form.scheduleCleaning
+          ? { startTime: form.cleaningStart, endTime: form.cleaningEnd, cleanerId: form.cleanerId || null }
+          : null,
+      })
+      toast.show('Reserva guardada')
+    }
+    emit('saved')
     open.value = false
   } catch (e) {
     error.value = e.message
@@ -141,9 +177,16 @@ async function submit() {
 </script>
 
 <template>
-  <BaseBottomSheet v-model:open="open" title="Registrar reserva">
-    <form id="new-booking" class="flex flex-col gap-5" novalidate @submit.prevent="submit">
-      <section class="flex flex-col gap-2">
+  <BaseBottomSheet v-model:open="open" :title="isEditing ? 'Editar reserva' : 'Registrar reserva'">
+    <form id="booking-form" class="flex flex-col gap-5" novalidate @submit.prevent="submit">
+      <p v-if="isEditing && selectedApartment" class="rounded-md bg-surface-muted px-3 py-2 text-label-lg">
+        {{ selectedApartment.building.name }} · Apartamento {{ selectedApartment.code }}
+        <span class="block text-body-sm text-ink-muted">
+          Para cambiar de apartamento, cancela esta reserva y registra otra.
+        </span>
+      </p>
+
+      <section v-if="!isEditing" class="flex flex-col gap-2">
         <h3 class="text-label-md uppercase text-ink-muted">1. Edificio</h3>
         <div class="flex flex-wrap gap-2">
           <BaseChip
@@ -157,7 +200,7 @@ async function submit() {
         </div>
       </section>
 
-      <section class="flex flex-col gap-2">
+      <section v-if="!isEditing" class="flex flex-col gap-2">
         <h3 class="text-label-md uppercase text-ink-muted">2. Apartamento</h3>
         <div class="grid grid-cols-4 gap-2">
           <button
@@ -254,7 +297,13 @@ async function submit() {
         />
       </label>
 
-      <section class="flex flex-col gap-3 rounded-lg bg-warning-soft p-3">
+      <p v-if="isEditing" class="flex items-start gap-2 rounded-md bg-warning-soft px-3 py-2 text-body-sm text-warning-ink">
+        <BrushCleaning class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        Si cambias la salida, la limpieza pendiente se mueve a la nueva fecha. El empleado y la franja se
+        cambian desde el detalle de la limpieza.
+      </p>
+
+      <section v-else class="flex flex-col gap-3 rounded-lg bg-warning-soft p-3">
         <label class="flex min-h-12 items-center justify-between gap-3">
           <span class="flex items-center gap-2">
             <BrushCleaning class="size-5 text-warning-ink" aria-hidden="true" />
@@ -297,9 +346,9 @@ async function submit() {
 
     <template #footer>
       <div class="flex gap-3">
-        <BaseButton variant="secondary" class="flex-1" @click="open = false">Cancelar</BaseButton>
-        <BaseButton type="submit" form="new-booking" class="flex-[2]" :disabled="saving">
-          {{ saving ? 'Guardando…' : 'Guardar reserva' }}
+        <BaseButton variant="secondary" class="flex-1" @click="open = false">Cerrar</BaseButton>
+        <BaseButton type="submit" form="booking-form" class="flex-[2]" :disabled="saving">
+          {{ saving ? 'Guardando…' : isEditing ? 'Guardar cambios' : 'Guardar reserva' }}
         </BaseButton>
       </div>
     </template>
