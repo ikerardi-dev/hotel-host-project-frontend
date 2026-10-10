@@ -6,17 +6,22 @@ import ApartmentCard from '@/components/ApartmentCard.vue'
 import BookingFormModal from '@/components/BookingFormModal.vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 import BaseChip from '@/components/ui/BaseChip.vue'
+import TodaySummary from '@/components/TodaySummary.vue'
+import TodayTimeline from '@/components/TodayTimeline.vue'
 import { getApartments } from '@/api/apartments'
+import { getTodayDashboard } from '@/api/dashboard'
 
 const apartments = ref([])
+const dashboard = ref(null)
 const loading = ref(true)
 const loadError = ref('')
 const selectedBuildingId = ref(null) // null = todos
 const bookingModalOpen = ref(false)
 
-async function loadApartments() {
+// Resumen del día y apartamentos; se recarga también al guardar una reserva
+async function load() {
   try {
-    apartments.value = await getApartments()
+    ;[dashboard.value, apartments.value] = await Promise.all([getTodayDashboard(), getApartments()])
     loadError.value = ''
   } catch (e) {
     loadError.value = e.message
@@ -25,7 +30,7 @@ async function loadApartments() {
   }
 }
 
-onMounted(loadApartments)
+onMounted(load)
 
 // Edificios en el orden en que llegan los apartamentos, con sus apartamentos y ocupados
 const buildings = computed(() => {
@@ -54,10 +59,13 @@ const visibleBuildings = computed(() =>
 
 <template>
   <section class="flex flex-col gap-5">
-    <p v-if="loading" class="text-body-md text-ink-muted">Cargando apartamentos…</p>
+    <p v-if="loading" class="text-body-md text-ink-muted">Cargando…</p>
     <p v-else-if="loadError" role="alert" class="text-body-md text-danger-ink">{{ loadError }}</p>
 
     <template v-else>
+      <TodaySummary :dashboard="dashboard" />
+      <TodayTimeline :events="dashboard.timeline" />
+
       <div class="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none]">
         <BaseChip class="shrink-0" :selected="selectedBuildingId === null" @click="selectedBuildingId = null">
           Todos ({{ apartments.length }})
@@ -105,7 +113,7 @@ const visibleBuildings = computed(() =>
         <Plus class="size-6" aria-hidden="true" />
       </button>
 
-      <BookingFormModal v-model:open="bookingModalOpen" :apartments="apartments" @saved="loadApartments" />
+      <BookingFormModal v-model:open="bookingModalOpen" :apartments="apartments" @saved="load" />
     </template>
   </section>
 </template>
