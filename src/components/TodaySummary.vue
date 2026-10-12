@@ -14,7 +14,7 @@ const occupancy = computed(() =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-3">
+  <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
     <article class="flex flex-col gap-1 rounded-lg border border-border bg-surface p-3 shadow-card">
       <LogIn class="size-5 text-primary" aria-hidden="true" />
       <p class="text-headline-lg-mobile tabular-nums">{{ dashboard.checkIns }}</p>

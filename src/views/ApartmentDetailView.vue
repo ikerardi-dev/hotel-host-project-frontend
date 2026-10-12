@@ -148,6 +148,8 @@ const dayCleanings = computed(() => cleanings.value.filter((cleaning) => cleanin
         </p>
       </header>
 
+      <!-- En escritorio, el calendario y el detalle del día van uno al lado del otro -->
+      <div class="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start">
       <BookingCalendar
         :year="year"
         :month="month"
@@ -159,6 +161,13 @@ const dayCleanings = computed(() => cleanings.value.filter((cleaning) => cleanin
         @next="changeMonth(1)"
         @select="selectDay"
       />
+
+      <p
+        v-if="!selectedDate"
+        class="hidden rounded-lg border border-dashed border-border-input p-6 text-center text-body-md text-ink-muted lg:block"
+      >
+        Pulsa un día del calendario para ver sus reservas y su limpieza.
+      </p>
 
       <Transition
         enter-active-class="transition duration-200 ease-out"
@@ -179,6 +188,7 @@ const dayCleanings = computed(() => cleanings.value.filter((cleaning) => cleanin
           @cancel="askCancel"
         />
       </Transition>
+      </div>
 
       <BookingFormModal
         v-model:open="formOpen"

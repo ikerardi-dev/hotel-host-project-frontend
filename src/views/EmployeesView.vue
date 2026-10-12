@@ -1,18 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Plus, Search } from '@lucide/vue'
 import BaseChip from '@/components/ui/BaseChip.vue'
 import BaseConfirmDialog from '@/components/ui/BaseConfirmDialog.vue'
 import EmployeeCard from '@/components/EmployeeCard.vue'
 import { getEmployees, updateEmployeeStatus } from '@/api/employees'
+import { useAsyncData } from '@/composables/useAsyncData'
 import { useToastStore } from '@/stores/toast'
 
 const toast = useToastStore()
 
-const employees = ref([])
-const loading = ref(true)
-const loadError = ref('')
+const { data: employees, loading, error: loadError } = useAsyncData(getEmployees, [])
 const search = ref('')
 const showActive = ref(true)
 
@@ -35,16 +34,6 @@ const visibleEmployees = computed(() => {
 const selectedName = computed(() =>
   selected.value ? `${selected.value.firstName} ${selected.value.lastName}` : '',
 )
-
-onMounted(async () => {
-  try {
-    employees.value = await getEmployees()
-  } catch (e) {
-    loadError.value = e.message
-  } finally {
-    loading.value = false
-  }
-})
 
 function askToggleStatus(employee) {
   selected.value = employee
@@ -105,16 +94,18 @@ async function confirmToggleStatus() {
       {{ search ? 'Ningún empleado coincide con la búsqueda.' : 'No hay empleados en esta lista.' }}
     </p>
 
-    <EmployeeCard
-      v-for="employee in visibleEmployees"
-      :key="employee.id"
-      :employee="employee"
-      @toggle-status="askToggleStatus"
-    />
+    <div class="grid gap-4 lg:grid-cols-2">
+      <EmployeeCard
+        v-for="employee in visibleEmployees"
+        :key="employee.id"
+        :employee="employee"
+        @toggle-status="askToggleStatus"
+      />
+    </div>
 
     <RouterLink
       :to="{ name: 'employee-new' }"
-      class="fixed right-4 bottom-24 z-10 flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-floating hover:bg-primary-hover"
+      class="fixed right-4 bottom-24 z-10 flex lg:right-8 lg:bottom-8 size-14 items-center justify-center rounded-full bg-primary text-white shadow-floating hover:bg-primary-hover"
       aria-label="Añadir empleado"
     >
       <Plus class="size-6" aria-hidden="true" />

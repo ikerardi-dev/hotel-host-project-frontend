@@ -88,7 +88,7 @@ async function submit() {
 </script>
 
 <template>
-  <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+  <form class="flex flex-col gap-4 lg:max-w-2xl" novalidate @submit.prevent="submit">
     <RouterLink
       :to="{ name: 'employees' }"
       class="inline-flex w-fit items-center gap-1 rounded-full bg-surface-muted px-3 py-2 text-label-lg text-primary"

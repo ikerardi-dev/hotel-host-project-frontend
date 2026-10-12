@@ -61,7 +61,7 @@ La app tiene dos roles, y cada uno ve **solo su menú y sus pantallas**. No hay 
 | Estado | Pinia 4 |
 | Estilos | Tailwind CSS 4 con los tokens del sistema de diseño |
 | Iconos | Lucide (`@lucide/vue`) |
-| Tests | Vitest + jsdom |
+| Tests | Vitest + jsdom + Vue Test Utils |
 | Diseño | Google Stitch / Figma |
 
 ---
@@ -136,8 +136,9 @@ En modo desarrollo, la ruta **`/ui`** muestra un catálogo con todos los compone
 src/
 ├── api/            Funciones de acceso a la API (cliente HTTP y una por recurso)
 ├── assets/         styles.css (Tailwind y tokens) y logo
+├── composables/    Lógica reutilizable entre vistas (carga de datos, agrupar por edificio)
 ├── components/     Componentes de pantalla (ApartmentCard, BookingCalendar, OccupancyGrid…)
-│   ├── layout/     Cabecera y navegación inferior
+│   ├── layout/     Cabecera, navegación inferior (móvil) y menú lateral (escritorio)
 │   └── ui/         Componentes base del sistema de diseño
 ├── layouts/        AppLayout y menú de cada rol
 ├── router/         Rutas, roles permitidos y guard de sesión
@@ -150,13 +151,14 @@ src/
 
 ## Tests
 
-39 tests unitarios con Vitest:
+61 tests con Vitest:
 
 ```bash
 npm run test:unit -- --run
 ```
 
-Cubren el cliente HTTP (token, errores y sesión caducada), el store de sesión, los requisitos de contraseña, el generador de contraseñas temporales y la lógica de fechas, calendario y planning.
+- **Unitarios:** el cliente HTTP (token, errores y sesión caducada), el store de sesión, los requisitos de contraseña, el generador de contraseñas temporales, la lógica de fechas, calendario y planning, y los composables.
+- **De componentes**, con Vue Test Utils: `BaseButton`, `BaseInput`, `ApartmentCard`, `CleaningTaskCard` y la pantalla de login (con la API simulada).
 
 ---
 

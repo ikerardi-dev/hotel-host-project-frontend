@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import ApartmentCard from '@/components/ApartmentCard.vue'
@@ -10,45 +10,26 @@ import TodaySummary from '@/components/TodaySummary.vue'
 import TodayTimeline from '@/components/TodayTimeline.vue'
 import { getApartments } from '@/api/apartments'
 import { getTodayDashboard } from '@/api/dashboard'
+import { useAsyncData } from '@/composables/useAsyncData'
+import { useBuildingGroups } from '@/composables/useBuildingGroups'
 
-const apartments = ref([])
-const dashboard = ref(null)
-const loading = ref(true)
-const loadError = ref('')
 const selectedBuildingId = ref(null) // null = todos
 const bookingModalOpen = ref(false)
 
 // Resumen del día y apartamentos; se recarga también al guardar una reserva
-async function load() {
-  try {
-    ;[dashboard.value, apartments.value] = await Promise.all([getTodayDashboard(), getApartments()])
-    loadError.value = ''
-  } catch (e) {
-    loadError.value = e.message
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(load)
-
-// Edificios en el orden en que llegan los apartamentos, con sus apartamentos y ocupados
-const buildings = computed(() => {
-  const byId = new Map()
-  for (const apartment of apartments.value) {
-    const { id, name } = apartment.building
-    if (!byId.has(id)) byId.set(id, { id, name, apartments: [] })
-    byId.get(id).apartments.push(apartment)
-  }
-  return [...byId.values()].map((building) => {
-    const occupied = building.apartments.filter((a) => a.status === 'OCCUPIED').length
-    return {
-      ...building,
-      occupied,
-      occupancy: Math.round((occupied / building.apartments.length) * 100),
-    }
-  })
+const {
+  data,
+  loading,
+  error: loadError,
+  reload: load,
+} = useAsyncData(async () => {
+  const [dashboard, apartments] = await Promise.all([getTodayDashboard(), getApartments()])
+  return { dashboard, apartments }
 })
+
+const dashboard = computed(() => data.value?.dashboard ?? null)
+const apartments = computed(() => data.value?.apartments ?? [])
+const buildings = useBuildingGroups(apartments)
 
 const visibleBuildings = computed(() =>
   selectedBuildingId.value === null
@@ -92,7 +73,7 @@ const visibleBuildings = computed(() =>
           <BaseBadge variant="primary">{{ building.occupancy }}% ocupación</BaseBadge>
         </header>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           <RouterLink
             v-for="apartment in building.apartments"
             :key="apartment.id"
@@ -106,7 +87,7 @@ const visibleBuildings = computed(() =>
 
       <button
         type="button"
-        class="fixed right-4 bottom-24 z-10 flex size-14 items-center justify-center rounded-full bg-primary text-white shadow-floating hover:bg-primary-hover"
+        class="fixed right-4 bottom-24 z-10 flex size-14 lg:right-8 lg:bottom-8 items-center justify-center rounded-full bg-primary text-white shadow-floating hover:bg-primary-hover"
         aria-label="Registrar reserva"
         @click="bookingModalOpen = true"
       >

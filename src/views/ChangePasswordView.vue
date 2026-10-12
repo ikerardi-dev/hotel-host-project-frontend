@@ -51,7 +51,7 @@ async function submit() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
+  <section class="flex flex-col gap-4 lg:max-w-2xl">
     <button
       type="button"
       class="inline-flex w-fit items-center gap-1 rounded-full bg-surface-muted px-3 py-2 text-label-lg text-primary"

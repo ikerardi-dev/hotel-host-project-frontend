@@ -52,7 +52,7 @@ function logout() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
+  <section class="flex flex-col gap-4 lg:max-w-2xl">
     <header class="flex flex-col items-center gap-2 rounded-lg border border-border bg-surface p-5 text-center shadow-card">
       <span
         class="flex size-20 items-center justify-center rounded-full bg-sand text-headline-md text-ink-muted"

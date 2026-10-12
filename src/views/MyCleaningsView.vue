@@ -1,28 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import CleaningTaskCard from '@/components/CleaningTaskCard.vue'
 import { getMyCleanings } from '@/api/cleanings'
+import { useAsyncData } from '@/composables/useAsyncData'
 import { useAuthStore } from '@/stores/auth'
 import { localDate } from '@/utils/dates'
 import { formatDayTitle, formatLongDate } from '@/utils/format'
 
 const auth = useAuthStore()
 
-const cleanings = ref([])
-const loading = ref(true)
-const loadError = ref('')
+const { data: cleanings, loading, error: loadError } = useAsyncData(getMyCleanings, [])
 
 const today = localDate(0)
-
-onMounted(async () => {
-  try {
-    cleanings.value = await getMyCleanings()
-  } catch (e) {
-    loadError.value = e.message
-  } finally {
-    loading.value = false
-  }
-})
 
 const todayCleanings = computed(() => cleanings.value.filter((c) => c.date === today))
 const summary = computed(() => ({
@@ -83,7 +72,9 @@ function groupTitle(key) {
       >
         {{ group.title }}
       </h2>
-      <CleaningTaskCard v-for="cleaning in group.cleanings" :key="cleaning.id" :cleaning="cleaning" />
+      <div class="grid gap-3 lg:grid-cols-2">
+        <CleaningTaskCard v-for="cleaning in group.cleanings" :key="cleaning.id" :cleaning="cleaning" />
+      </div>
     </section>
   </section>
 </template>

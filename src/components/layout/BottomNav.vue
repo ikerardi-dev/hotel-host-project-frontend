@@ -7,8 +7,8 @@ defineProps({
 </script>
 
 <template>
-  <nav class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface shadow-floating">
-    <ul class="mx-auto flex max-w-lg">
+  <nav class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-surface shadow-floating lg:hidden">
+    <ul class="mx-auto flex max-w-lg md:max-w-3xl">
       <li v-for="item in items" :key="item.route" class="flex-1">
         <RouterLink
           :to="{ name: item.route }"

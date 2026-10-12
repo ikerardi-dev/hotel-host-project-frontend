@@ -168,12 +168,14 @@ const groups = computed(() => {
       >
         {{ group.title }}
       </h2>
-      <CleaningTaskCard
-        v-for="cleaning in group.cleanings"
-        :key="cleaning.id"
-        :cleaning="cleaning"
-        show-assignee
-      />
+      <div class="grid gap-3 lg:grid-cols-2">
+        <CleaningTaskCard
+          v-for="cleaning in group.cleanings"
+          :key="cleaning.id"
+          :cleaning="cleaning"
+          show-assignee
+        />
+      </div>
     </section>
   </section>
 </template>
