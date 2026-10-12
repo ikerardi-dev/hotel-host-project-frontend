@@ -7,6 +7,7 @@ import BaseChip from '@/components/ui/BaseChip.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import { createBooking, getAvailability, updateBooking } from '@/api/bookings'
 import { getEmployees } from '@/api/employees'
+import { useBuildingGroups } from '@/composables/useBuildingGroups'
 import { useToastStore } from '@/stores/toast'
 import { BOOKING_CHANNELS } from '@/utils/bookingChannels'
 import { countNights, localDate, toLocalDateTime } from '@/utils/dates'
@@ -75,11 +76,7 @@ const unavailableIds = ref(new Set())
 const error = ref('')
 const saving = ref(false)
 
-const buildings = computed(() => {
-  const byId = new Map()
-  props.apartments.forEach((a) => byId.set(a.building.id, a.building))
-  return [...byId.values()]
-})
+const buildings = useBuildingGroups(() => props.apartments)
 const buildingApartments = computed(() => props.apartments.filter((a) => a.building.id === form.buildingId))
 const selectedApartment = computed(() => props.apartments.find((a) => a.id === form.apartmentId) ?? null)
 const maxGuests = computed(() => selectedApartment.value?.capacity ?? 1)
