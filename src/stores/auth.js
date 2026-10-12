@@ -1,6 +1,10 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { changePassword as changePasswordRequest, login as loginRequest } from '@/api/auth'
+import {
+  changePassword as changePasswordRequest,
+  login as loginRequest,
+  updateProfile as updateProfileRequest,
+} from '@/api/auth'
 import { setAuthToken } from '@/api/client'
 
 const STORAGE_KEY = 'auth'
@@ -51,6 +55,10 @@ export const useAuthStore = defineStore('auth', () => {
     setUser(await changePasswordRequest(currentPassword, newPassword))
   }
 
+  async function updateProfile(profile) {
+    setUser(await updateProfileRequest(profile))
+  }
+
   // Actualiza los datos del usuario manteniendo la sesión guardada
   function setUser(updatedUser) {
     user.value = updatedUser
@@ -78,6 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
     homeRoute,
     login,
     changePassword,
+    updateProfile,
     logout,
   }
 })

@@ -80,6 +80,12 @@ const router = createRouter({
           component: () => import('@/views/ProfileView.vue'),
           meta: { title: 'Mi perfil', roles: ALL_ROLES },
         },
+        {
+          path: 'profile/password',
+          name: 'change-password',
+          component: () => import('@/views/ChangePasswordView.vue'),
+          meta: { title: 'Cambiar contraseña', roles: ALL_ROLES },
+        },
       ],
     },
     // Solo en desarrollo: catálogo de componentes base

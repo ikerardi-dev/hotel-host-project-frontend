@@ -43,7 +43,7 @@ const description = computed(() => props.error || props.hint)
         :type="inputType"
         :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="description ? descriptionId : undefined"
-        class="h-12 w-full rounded-md border px-3 text-body-lg placeholder:text-ink-disabled focus:ring-2 focus:ring-primary focus:outline-none"
+        class="h-12 w-full rounded-md border px-3 text-body-lg placeholder:text-ink-disabled focus:ring-2 focus:ring-primary focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-ink-muted"
         :class="[
           error ? 'border-danger bg-danger-soft' : 'border-border-input bg-surface',
           { 'pl-10': icon, 'pr-12': isPassword },
