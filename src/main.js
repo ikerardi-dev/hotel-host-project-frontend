@@ -13,7 +13,7 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
-// Si la sesión deja de valer (token caducado o usuario dado de baja), se vuelve al login
+// Si la sesión deja de valer (token caducado, usuario dado de baja o contraseña restablecida), se vuelve al login
 setUnauthorizedHandler(() => {
   useAuthStore().logout()
   router.push({ name: 'login' })

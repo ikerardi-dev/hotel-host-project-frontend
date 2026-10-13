@@ -164,7 +164,7 @@ src/
 
 ## Tests
 
-70 tests con Vitest:
+72 tests con Vitest:
 
 ```bash
 npm run test:unit -- --run

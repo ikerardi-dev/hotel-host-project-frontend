@@ -88,6 +88,28 @@ describe('api client', () => {
     expect(handler).toHaveBeenCalledOnce()
   })
 
+  it('cierra la sesión si el admin le ha dado una contraseña temporal nueva', async () => {
+    mockFetchResponse(403, { error: 'PASSWORD_CHANGE_REQUIRED', message: 'Tienes que cambiar la contraseña' })
+    const handler = vi.fn()
+    setAuthToken('token-anterior')
+    setUnauthorizedHandler(handler)
+
+    await api.get('/me/cleanings').catch(() => {})
+
+    expect(handler).toHaveBeenCalledOnce()
+  })
+
+  it('un 403 normal (sin permiso) no cierra la sesión', async () => {
+    mockFetchResponse(403, { error: 'FORBIDDEN', message: 'No tienes permiso para esta acción' })
+    const handler = vi.fn()
+    setAuthToken('mi-token')
+    setUnauthorizedHandler(handler)
+
+    await api.get('/employees').catch(() => {})
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('no avisa de sesión caducada en un login fallido (401 sin token)', async () => {
     mockFetchResponse(401, { error: 'INVALID_CREDENTIALS', message: 'Email o contraseña incorrectos' })
     const handler = vi.fn()

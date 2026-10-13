@@ -8,7 +8,8 @@ export function setAuthToken(token) {
   authToken = token
 }
 
-// Se ejecuta cuando la API responde 401 teniendo sesión (token caducado o usuario dado de baja)
+// Se ejecuta cuando la sesión deja de valer: token caducado, usuario dado de baja o eliminado,
+// o contraseña restablecida por el admin
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler
 }
@@ -52,7 +53,10 @@ async function request(method, path, body) {
 
   const data = await response.json().catch(() => null)
 
-  if (response.status === 401 && authToken && onUnauthorized) {
+  // PASSWORD_CHANGE_REQUIRED con sesión abierta: el admin le ha dado una contraseña temporal nueva,
+  // así que tiene que volver a entrar con ella (y entonces se le pedirá cambiarla)
+  const sessionEnded = response.status === 401 || data?.error === 'PASSWORD_CHANGE_REQUIRED'
+  if (sessionEnded && authToken && onUnauthorized) {
     onUnauthorized()
   }
 
