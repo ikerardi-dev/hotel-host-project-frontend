@@ -8,6 +8,18 @@ El encargado anota las entradas y salidas de huéspedes, controla la ocupación 
 
 ---
 
+## Enlaces del proyecto
+
+| | |
+|---|---|
+| Presentación | [presentacion.pdf](https://github.com/ikerardi-dev/hotel-host-project-backend/blob/main/docs/presentacion.pdf) en el repositorio del backend (se ve directamente en GitHub). Versión con animaciones: [presentacion.html](https://github.com/ikerardi-dev/hotel-host-project-backend/blob/main/docs/presentacion.html), descárgala y ábrela en Chrome o Edge |
+| Diseño | [Figma](https://www.figma.com/design/meI8zWuhbF2iShiXXA7YWi/Sin-t%C3%ADtulo) (bocetos y pantallas exportadas de Google Stitch) |
+| Planificación | [Jira · backlog y sprints](https://ikerfactoriaf5-1790672970142.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog) |
+| Frontend | [hotel-host-project-frontend](https://github.com/ikerardi-dev/hotel-host-project-frontend) |
+| Backend | [hotel-host-project-backend](https://github.com/ikerardi-dev/hotel-host-project-backend) |
+
+---
+
 ## Índice
 
 - [Pantallas](#pantallas)
@@ -25,7 +37,7 @@ El encargado anota las entradas y salidas de huéspedes, controla la ocupación 
 
 ## Pantallas
 
-La app tiene dos roles, y cada uno ve **solo su menú y sus pantallas**. No hay registro público: el administrador da de alta al personal.
+La app tiene dos roles, y cada uno ve **solo su menú y sus pantallas**. No hay registro público: el registro lo hace el administrador desde **Empleados → Nuevo empleado**, que da de alta al empleado con una contraseña temporal. El empleado la cambia en su primer acceso.
 
 ### Administrador
 
