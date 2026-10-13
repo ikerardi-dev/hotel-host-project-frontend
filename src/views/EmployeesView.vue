@@ -8,6 +8,7 @@ import EmployeeCard from '@/components/EmployeeCard.vue'
 import { getEmployees, updateEmployeeStatus } from '@/api/employees'
 import { useAsyncData } from '@/composables/useAsyncData'
 import { useToastStore } from '@/stores/toast'
+import { statusChangedMessage, statusDialog } from '@/utils/employeeStatus'
 
 const toast = useToastStore()
 
@@ -43,17 +44,9 @@ function askToggleStatus(employee) {
 async function confirmToggleStatus() {
   saving.value = true
   try {
-    const { employee, unassignedCleanings } = await updateEmployeeStatus(
-      selected.value.id,
-      !selected.value.active,
-    )
-    employees.value = employees.value.map((e) => (e.id === employee.id ? employee : e))
-
-    let message = employee.active ? `${selectedName.value} reactivado` : `${selectedName.value} dado de baja`
-    if (unassignedCleanings > 0) {
-      message += `. ${unassignedCleanings} limpieza(s) se han quedado sin asignar`
-    }
-    toast.show(message)
+    const result = await updateEmployeeStatus(selected.value.id, !selected.value.active)
+    employees.value = employees.value.map((e) => (e.id === result.employee.id ? result.employee : e))
+    toast.show(statusChangedMessage(selectedName.value, result))
     dialogOpen.value = false
   } catch (e) {
     toast.show(e.message, 'error')
@@ -114,14 +107,7 @@ async function confirmToggleStatus() {
     <BaseConfirmDialog
       v-if="selected"
       v-model:open="dialogOpen"
-      :title="selected.active ? `¿Dar de baja a ${selectedName}?` : `¿Reactivar a ${selectedName}?`"
-      :message="
-        selected.active
-          ? 'No podrá iniciar sesión, pero su historial de limpiezas se conservará. Sus limpiezas pendientes se quedarán sin asignar.'
-          : 'Podrá volver a iniciar sesión con su contraseña actual.'
-      "
-      :confirm-label="selected.active ? 'Dar de baja' : 'Reactivar'"
-      :variant="selected.active ? 'danger' : 'primary'"
+      v-bind="statusDialog(selected, selectedName)"
       :loading="saving"
       @confirm="confirmToggleStatus"
     />

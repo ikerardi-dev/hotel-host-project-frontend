@@ -49,6 +49,7 @@ La app tiene dos roles, y cada uno ve **solo su menú y sus pantallas**. No hay 
 | **Limpiezas** | Control de todas las limpiezas con resumen, filtros e historial. Las sin asignar o con incidencia salen destacadas |
 | **Detalle de limpieza** | Reasignar empleado y franja. Si el admin modifica las tareas de un empleado, se le pide confirmación |
 | **Empleados** | Lista con buscador y pestañas Activos / De baja; alta con contraseña temporal; baja y reactivación |
+| **Ficha del empleado** | Editar sus datos, generar una contraseña temporal nueva si la olvida (tendrá que cambiarla al entrar), dar de baja o reactivar y, si está de baja, eliminarlo definitivamente |
 | **Perfil** | Datos personales y cambio de contraseña |
 
 ### Empleado de limpieza
@@ -163,7 +164,7 @@ src/
 
 ## Tests
 
-61 tests con Vitest:
+70 tests con Vitest:
 
 ```bash
 npm run test:unit -- --run

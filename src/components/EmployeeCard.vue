@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import { BrushCleaning, Mail, Phone, UserCheck, UserX } from '@lucide/vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
 
@@ -16,7 +17,10 @@ const fullName = computed(() => `${props.employee.firstName} ${props.employee.la
 </script>
 
 <template>
-  <article class="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-card">
+  <!-- Toda la tarjeta lleva a la ficha (enlace estirado sobre el nombre); el botón de baja queda por encima -->
+  <article
+    class="relative flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 shadow-card hover:border-primary"
+  >
     <header class="flex items-start gap-3">
       <span
         class="flex size-11 shrink-0 items-center justify-center rounded-full bg-sand-light text-label-lg text-ink-muted"
@@ -25,14 +29,21 @@ const fullName = computed(() => `${props.employee.firstName} ${props.employee.la
         {{ initials }}
       </span>
       <div class="min-w-0 flex-1">
-        <h3 class="text-headline-sm">{{ fullName }}</h3>
+        <h3 class="text-headline-sm">
+          <RouterLink
+            :to="{ name: 'employee-detail', params: { id: employee.id } }"
+            class="after:absolute after:inset-0 after:rounded-lg"
+          >
+            {{ fullName }}
+          </RouterLink>
+        </h3>
         <BaseBadge :variant="employee.active ? 'success' : 'neutral'">
           {{ employee.active ? 'Activo' : 'De baja' }}
         </BaseBadge>
       </div>
       <button
         type="button"
-        class="flex size-11 shrink-0 items-center justify-center rounded-full"
+        class="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full"
         :class="employee.active ? 'text-danger hover:bg-danger-soft' : 'text-primary hover:bg-surface-muted'"
         :aria-label="employee.active ? `Dar de baja a ${fullName}` : `Reactivar a ${fullName}`"
         @click="emit('toggle-status', employee)"

@@ -63,6 +63,12 @@ const router = createRouter({
           meta: { title: 'Nuevo empleado', roles: ADMIN },
         },
         {
+          path: 'employees/:id',
+          name: 'employee-detail',
+          component: () => import('@/views/EmployeeDetailView.vue'),
+          meta: { title: 'Ficha del empleado', roles: ADMIN },
+        },
+        {
           path: 'my-cleanings',
           name: 'my-cleanings',
           component: () => import('@/views/MyCleaningsView.vue'),
