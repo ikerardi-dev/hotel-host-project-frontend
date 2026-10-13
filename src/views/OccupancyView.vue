@@ -32,6 +32,11 @@ const occupiedToday = computed(() => {
   return ids.size
 })
 
+const buildingName = computed(() => buildings.value.find((b) => b.id === buildingId.value)?.name ?? '')
+const isEmptyWeek = computed(
+  () => occupancy.value !== null && occupancy.value.bookings.length === 0 && occupancy.value.cleanings.length === 0,
+)
+
 async function load() {
   if (!buildingId.value) return
   try {
@@ -110,6 +115,13 @@ watch([buildingId, monday], load)
     </ul>
 
     <p v-if="loadError" role="alert" class="text-body-md text-danger-ink">{{ loadError }}</p>
+
+    <p
+      v-if="isEmptyWeek"
+      class="rounded-lg border border-border bg-surface px-4 py-3 text-body-md text-ink-muted"
+    >
+      No hay reservas ni limpiezas en {{ buildingName }} esta semana.
+    </p>
 
     <OccupancyGrid
       v-if="occupancy"
